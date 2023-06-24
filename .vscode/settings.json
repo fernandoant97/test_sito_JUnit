@@ -1,0 +1,16 @@
+{
+  "workbench.colorTheme": "Default Dark Modern",
+  "python.defaultInterpreterPath": "C:\\Users\\parad\\AppData\\Local\\Microsoft\\WindowsApps\\python3.11.exe",
+  "[java]": {
+      "editor.suggest.snippetsPreventQuickSuggestions": false,
+      
+  },
+  "java.project.sourcePaths":["src"],
+  "java.project.outputPaths": "bin",
+  "java.project.referencedLibraries":["lib/**/*.jar"],
+  "java.jdt.ls.java.home": "C:\\Program Files\\Java\\jdk-20"
+  ,
+    "maven.executable.path": "C:\\apache-maven-3.9.2\\bin\\mvn",
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "interactive"
+}
