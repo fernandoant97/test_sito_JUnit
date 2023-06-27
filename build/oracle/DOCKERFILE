@@ -1,9 +1,21 @@
 # Dockerfile_oracle
 FROM container-registry.oracle.com/database/free:latest
+
+# Imposta le variabili di ambiente
 ENV ORACLE_SID=ORCLCDB
 ENV ORACLE_PDB=ORCLPDB1
 ENV ORACLE_PWD=oracle
 
+# Copia il file SQL nel container
+COPY ./docker-entrypoint-initdb.d/export.sql /docker-entrypoint-initdb.d/export.sql
 
-# Esegui i test con Maven
-ENTRYPOINT mvn test
+# Copia il file runOracle.sh nel container
+COPY ./oracle/runOracle.sh /opt/oracle/scripts/startup/runOracle.sh
+
+# Esegui il file SQL all'avvio del container
+RUN chmod +x /opt/oracle/runOracle.sh
+
+CMD /opt/oracle/scripts/startup/runOracle.sh
+
+# Esegui il file SQL all'avvio del container
+RUN /u01/app/oracle/product/12.2.0.1/dbhome_1/bin/sqlplus sys/Oradoc_db1@ORCLCDB as sysdba @/docker-entrypoint-initdb.d/export.sql
