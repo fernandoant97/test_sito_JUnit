@@ -1,0 +1,9 @@
+# Dockerfile_oracle
+FROM container-registry.oracle.com/database/free:latest
+ENV ORACLE_SID=ORCLCDB
+ENV ORACLE_PDB=ORCLPDB1
+ENV ORACLE_PWD=oracle
+
+
+# Esegui i test con Maven
+ENTRYPOINT mvn test

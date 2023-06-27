@@ -13,12 +13,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.TimeoutException;
 
@@ -32,7 +28,7 @@ class testTest {
     @BeforeEach
     void setUp() throws URISyntaxException {
         // Questo codice viene eseguito prima di ogni test
-        System.setProperty("webdriver.chrome.driver", "C:/Users/parad/Desktop/test-sito/chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", "C:/Users/lucis_ck21/Desktop/ing/progetto_test/chromedriver.exe");
         driver = new ChromeDriver();
 
         // Esegui test di connessione
@@ -74,6 +70,7 @@ class testTest {
         }
     }
 
+    @Test 
     void login() {
         // Visita una pagina web
         driver.get("http://localhost:8080/");
@@ -107,6 +104,61 @@ class testTest {
         }
     }
 
+    @Test  
+    void loginErrato(){
+        logout();
+        driver.get("http://localhost:8080/");
+        WebElement usernameInput = driver.findElement(By.cssSelector("input[name='username']"));
+        usernameInput.sendKeys("michele");
+
+        WebElement passwordInput = driver.findElement(By.cssSelector("input[name='password']"));
+        passwordInput.sendKeys("mick");
+
+        // Trova il pulsante di login utilizzando il suo attributo di classe
+        WebElement loginButton = driver.findElement(By.cssSelector(".btn.btn-lg.btn-primary.btn-block"));
+
+        // Clicca sul pulsante di login
+        loginButton.click();
+
+        try {
+
+            // Attendi che l'elemento con id ".fa.fa-user.fa-2x" sia visibile
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/form/img")));
+
+            // Se siamo arrivati qui senza errori, il login è andato a buon fine
+            System.out.println("Utente/password errati! Login non riuscito.");
+
+        } catch (TimeoutException e) {
+            // Se si verifica un'eccezione di timeout, significa che l'elemento non è stato
+            // trovato entro il tempo specificato
+            System.out.println("Login effettuato");
+            fail("Login effettuato"); // Questo farà fallire il test
+        }
+    }
+
+    @Test
+    void logout(){
+        WebElement omino = driver.findElement(By.xpath("//i[@class='fa fa-user fa-2x']"));
+        omino.click();
+        WebElement logout = driver.findElement(By.xpath("//a[normalize-space()='Logout']"));
+        logout.click();
+
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".btn.btn-lg.btn-primary.btn-block")));
+
+            // Se siamo arrivati qui senza errori, il login è andato a buon fine
+            System.out.println("Logout effettuato!");
+
+        } catch (TimeoutException e) {
+            // Se si verifica un'eccezione di timeout, significa che l'elemento non è stato
+            // trovato entro il tempo specificato
+            System.out.println("Errore logout");
+            fail("Errore logout"); // Questo farà fallire il test
+        }
+    }
+
     @Test
     @Order(1)
     void testAnagrafica() {
@@ -136,6 +188,25 @@ class testTest {
         WebElement anagraficaButton = driver.findElement(By.xpath("//*[@id=\"content\"]/div[1]/div/div[1]/a/div/h4"));
         anagraficaButton.click();
 
+    }
+
+    @Test
+    void testNuovo() {
+        entryAnagrafica();
+        WebElement nuovoButton = driver.findElement(By.xpath("//a[@href='/RichiediAggiungiArticolo']//div[@class='service']//h4[contains(text(),'Nuovo')]"));
+        nuovoButton.click();
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@value='Annulla']")));
+
+            // Se siamo arrivati qui senza errori possiamo accedere alle altre operazioni
+            System.out.println("Nuovo articolo");
+        } catch (TimeoutException e) {
+            // Se si verifica un'eccezione di timeout, significa che l'elemento non è stato
+            // trovato entro il tempo specificato
+            System.out.println("Nuovo articolo non pervenuto");
+            fail("Nuovo articolo non pervenuto");
+        }
     }
 
     @Test
@@ -263,8 +334,7 @@ class testTest {
     @Test
     void testFornitoreNuovo() {
         entryAnagrafica();
-        WebElement fornitorenuovoButton = driver
-                .findElement(By.xpath("//*[@id=\"content\"]/div/div/div[4]/a[1]/div/i"));
+        WebElement fornitorenuovoButton = driver.findElement(By.xpath("//*[@id=\"content\"]/div/div/div[4]/a[1]/div/i"));
         fornitorenuovoButton.click();
         try {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
@@ -305,14 +375,48 @@ class testTest {
 
         @Test
         void testFillandSend() {
-            WebElement usernameInput = driver.findElement(By.cssSelector("input[name='descrizione']"));
-            usernameInput.sendKeys("ARTICOLO20");
+            entryAnagrafica();
+            entryNuovo();
+            WebElement descrizioneInput = driver.findElement(By.xpath("//input[@id='descrizione']"));
+            descrizioneInput.sendKeys("ARTICOLO56") ;
+            WebElement stagioneInput = driver.findElement(By.xpath("//input[@id='stagione']"));
+            stagioneInput.sendKeys("AI20") ;
+            WebElement salvaButton = driver.findElement(By.xpath("//input[@value='Salva']"));
+            salvaButton.click();
+
+            WebElement annullaButton = driver.findElement(By.xpath("//input[@value='Annulla']"));
+            annullaButton.click();
+
+            String html = driver.getPageSource();
+            if (html.contains("Articoli")) { // Se visualizziamo questa stringa, la pagina è stata raggiunta
+                System.out.println("Pagina precedente raggiunta");
+            } else {
+                System.out.println("Pagina precedente non raggiunta");
+                fail("Pagina precedente non raggiunta");
+            }
+
+            WebElement searchButton = driver.findElement(By.xpath("//a[@href='/RichiediCercaArticolo']//div[@class='service']//i[@class='fas fa-search fa-2x']"));
+            searchButton.click();
+            WebElement codiceInput = driver.findElement(By.xpath("//input[@name='codice']"));
+            codiceInput.sendKeys("56");
+            WebElement cercaButton = driver.findElement(By.xpath("//input[@value='Cerca']"));
+            cercaButton.click();
+            WebElement articoloButton = driver.findElement(By.id("dati"));
+            articoloButton.click();
+            String html2 = driver.getPageSource();
+            if (html2.contains("Modifica Articolo")) { // Se visualizziamo questa stringa, la pagina è stata raggiunta
+                System.out.println("Articolo esistente");
+            } else {
+                System.out.println("Articolo non esistente");
+                fail("Articolo non esistente");
+            }
+
         }
 
-        @Test
-        void test2() {
-            // secondo test della Categoria 1
-        }
+        void entryNuovo(){
+        WebElement nuovoButton = driver.findElement(By.xpath("//a[@href='/RichiediAggiungiArticolo']//div[@class='service']//h4[contains(text(),'Nuovo')]"));
+        nuovoButton.click();
+        } 
     }
 
  
@@ -396,6 +500,7 @@ class testTest {
         @Test
         @Order(3)
         void seleziona_da_successoCerca() {
+            successoCerca();
             WebElement successoButton = driver.findElement(By.id("dati"));
             successoButton.click();
             String html = driver.getPageSource();
@@ -441,9 +546,7 @@ class testTest {
 
                 // Attendi che l'elemento con id "fas fa-plus fa-2x" sia visibile
                 WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
-                wait.until(ExpectedConditions
-                        .presenceOfElementLocated(By.xpath(
-                                "//a[@href='/RichiediCercaArticolo']//div[@class='service']//i[@class='fas fa-search fa-2x']")));
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[@href='/RichiediCercaArticolo']//div[@class='service']//i[@class='fas fa-search fa-2x']")));
 
                 // Se siamo arrivati qui senza errori possiamo accedere alle altre operazioni
                 System.out.println("Uscita effettuata");
@@ -454,16 +557,21 @@ class testTest {
                 fail("Uscita non effettuata");
             }
 
+            // Aggiungi una pausa di 2 secondi
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
         }
 
         @Test
         @Order(6)
         void home() {
-            
             WebElement homeButton = driver.findElement(By.xpath("//i[@class='fa fa-home fa-2x']"));
             homeButton.click();
             try {
-
                 // Attendi che l'elemento con id "fas fa-plus fa-2x" sia visibile
                 WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
                 wait.until(ExpectedConditions
@@ -482,6 +590,437 @@ class testTest {
         void entrySearch(){
         WebElement searchButton = driver.findElement(By.xpath("//*[@id=\"content\"]/div/div/div[1]/a[2]/div/i"));
         searchButton.click();
+        }
+    }
+
+    @Nested
+    @TestMethodOrder(OrderAnnotation.class)
+    class Taglie {
+        
+        @BeforeEach
+        void accessoTotale() {
+            entryAnagrafica();
+            entryTaglie();
+        }
+
+        @Test
+        @Order (1)
+        void Nuova() {
+            WebElement nuovaButton = driver.findElement(By.xpath("//input[@value='Nuova']"));
+            nuovaButton.click();
+
+            String html = driver.getPageSource();
+            if (html.contains("Nuova Tabella Taglie")) { // Se visualizziamo questa stringa, la pagina è stata raggiunta
+                System.out.println("Pagina successiva raggiunta");
+            } else {
+                System.out.println("Pagina successiva non raggiunta");
+                fail("Pagina successiva non raggiunta");
+            }
+
+            
+        }
+
+        @Test
+        @Order (2)
+        void Inserisci() {
+            WebElement nuovaButton = driver.findElement(By.xpath("//input[@value='Nuova']"));
+            nuovaButton.click();
+            WebElement id = driver.findElement(By.xpath("//input[@id='id']"));
+            WebElement nazione = driver.findElement(By.cssSelector("input[name='nazione']"));
+            WebElement aggiungiButton = driver.findElement(By.xpath("//button[@class='btn']"));
+            aggiungiButton.click();
+            WebElement nome = driver.findElement(By.xpath("//td[@contenteditable='true']"));
+            id.sendKeys("IT");
+            nazione.sendKeys("ITALIA");
+            nome.sendKeys(("6XL"));
+
+            // Trova il pulsante di ricerca utilizzando il suo attributo di classe
+            WebElement salvaButton = driver.findElement(By.cssSelector("input[value='Salva']"));
+            salvaButton.click();
+
+            try {
+
+                // Attendi che l'elemento con id "fas fa-plus fa-2x" sia visibile
+                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@value='Nuova']")));
+
+                // Se siamo arrivati qui senza errori possiamo accedere alle altre operazioni
+                System.out.println("Inserimento effettuato");
+            } catch (TimeoutException e) {
+                // Se si verifica un'eccezione di timeout, significa che l'elemento non è stato
+                // trovato entro il tempo specificato
+                System.out.println("Inserimento non effettuato");
+                fail("Inserimento non effettuato");
+            }
+
+          
+        }
+
+        @Test
+        @Order(3)
+        void verificaCampo_id_nazione(){
+            WebElement tagliaButton = driver.findElement(By.id("dati"));
+            // Seleziona la riga di dati sulla base dell'ID
+            WebElement row = driver.findElement(By.id("dati"));
+
+            // Ottieni tutti i td in quella riga
+            List<WebElement> cells = row.findElements(By.tagName("td"));
+
+            // Ora che hai i td, puoi ottenere il testo da ognuno di essi
+            String id_ver = cells.get(0).getText();
+            String nome_ver = cells.get(1).getText();
+            // Verifica i valori
+            if (id_ver.equals("IT") && nome_ver.equals("ITALIA") ) {
+                tagliaButton.click();
+                System.out.println("Test passed");
+            } else {
+                System.out.println("Test failed");
+            }
+
+        }
+        @Test
+        @Order(4)
+        void annullaRicerca() {
+            WebElement annullaButton = driver.findElement(By.xpath("//input[@value='Annulla']"));
+            annullaButton.click();
+            try {
+                // Attendi che l'elemento con id "fas fa-plus fa-2x" sia visibile
+                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[@href='/RichiediCercaArticolo']//div[@class='service']//i[@class='fas fa-search fa-2x']")));
+
+                // Se siamo arrivati qui senza errori possiamo accedere alle altre operazioni
+                System.out.println("Uscita effettuata");
+            } catch (TimeoutException e) {
+                // Se si verifica un'eccezione di timeout, significa che l'elemento non è stato
+                // trovato entro il tempo specificato
+                System.out.println("Uscita non effettuata");
+                fail("Uscita non effettuata");
+            }
+
+            // Aggiungi una pausa di 2 secondi
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        void entryTaglie(){
+        WebElement taglieButton = driver.findElement(By.xpath("//h4[normalize-space()='Tabelle Taglie']"));
+        taglieButton.click();
+        }
+    }
+
+    @Nested
+    @TestMethodOrder(OrderAnnotation.class)
+    class Colore {
+        @BeforeEach
+        void accessoTotale() {
+            entryAnagrafica();
+            entryColore();
+        }
+        
+        @Test
+        @Order(1)
+        void inserisciColore(){
+            WebElement nome = driver.findElement(By.xpath("//input[@id='nome']"));
+            nome.sendKeys("ANTRACITE");
+            WebElement salvaButton = driver.findElement(By.xpath("//input[@value='Salva']"));
+            salvaButton.click();
+        }
+
+        @Test
+        @Order(2)
+        void eliminaColore(){
+            
+            // Trova tutti gli elementi della tabella che hanno come ID "dati"
+            List<WebElement> righe = driver.findElements(By.xpath("//tr[@id='dati']"));
+
+            // Itera attraverso le righe della tabella
+            for (WebElement riga : righe) {
+                // Ottieni il valore della riga
+                String valore = riga.getText();
+
+                // Verifica se il valore è "ANTRACITE"
+                if (valore.equals("ANTRACITE")) {
+                    WebElement eliminaButton = driver.findElement(By.cssSelector("body > div:nth-child(2) > div:nth-child(2) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(2) > button:nth-child(1)"));
+                    eliminaButton.click();
+                }else {
+                System.out.println("Colore non trovato");
+                }
+            }
+        }
+
+        @Test
+        @Order(5)
+        void annullaRicerca() {
+            WebElement annullaButton = driver.findElement(By.xpath("//input[@value='Annulla']"));
+            annullaButton.click();
+            try {
+                // Attendi che l'elemento con id "fas fa-plus fa-2x" sia visibile
+                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[@href='/RichiediCercaArticolo']//div[@class='service']//i[@class='fas fa-search fa-2x']")));
+
+                // Se siamo arrivati qui senza errori possiamo accedere alle altre operazioni
+                System.out.println("Uscita effettuata");
+            } catch (TimeoutException e) {
+                // Se si verifica un'eccezione di timeout, significa che l'elemento non è stato
+                // trovato entro il tempo specificato
+                System.out.println("Uscita non effettuata");
+                fail("Uscita non effettuata");
+            }
+
+            // Aggiungi una pausa di 2 secondi
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        
+        void entryColore(){
+            WebElement coloreButton = driver.findElement(By.xpath("//*[@id=\"content\"]/div/div/div[2]/a[2]/div/i"));
+            coloreButton.click();
+        }
+    }
+
+    @Nested
+    @TestMethodOrder(OrderAnnotation.class)
+    class Reparti {
+        @BeforeEach
+        void accessoTotale() {
+            entryAnagrafica();
+            entryReparti();
+        }
+
+        @Test
+        @Order(1)
+        void nuovoRep(){
+            WebElement nome = driver.findElement(By.id("nome"));
+            nome.sendKeys("CUCINA");
+            //salvo elemento
+            WebElement salva = driver.findElement(By.xpath("//input[@value='Salva']"));
+            salva.click();
+        }
+
+        @Test
+        @Order(2)
+        void eliminaRep() {
+            // Ottieni tutti gli elementi della tabella che hanno come ID "dati"
+            List<WebElement> righe = driver.findElements(By.xpath("//tr[@id='dati']"));
+
+            // Itera attraverso le righe della tabella
+            for (WebElement riga : righe) {
+                // Ottieni il valore della colonna "Nome" della riga corrente
+                WebElement nomeColonna = riga.findElement(By.xpath("./td[1]"));
+                String valoreNome = nomeColonna.getText();
+
+                // Verifica se il valore "Nome" è "CUCINA"
+                if (valoreNome.equals("CUCINA")) {
+                    // Trova il bottone "Elimina" nella riga corrente
+                    WebElement eliminaButton = riga.findElement(By.xpath("./td[2]/button"));
+                    eliminaButton.click();
+                    break; // Esci dal ciclo dopo aver eliminato la riga desiderata
+                }
+            }
+        }
+
+        @Test
+        @Order(5)
+        void annullaRicerca() {
+            WebElement annullaButton = driver.findElement(By.xpath("//input[@value='Annulla']"));
+            annullaButton.click();
+            try {
+                // Attendi che l'elemento con id "fas fa-plus fa-2x" sia visibile
+                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[@href='/RichiediCercaArticolo']//div[@class='service']//i[@class='fas fa-search fa-2x']")));
+
+                // Se siamo arrivati qui senza errori possiamo accedere alle altre operazioni
+                System.out.println("Uscita effettuata");
+            } catch (TimeoutException e) {
+                // Se si verifica un'eccezione di timeout, significa che l'elemento non è stato
+                // trovato entro il tempo specificato
+                System.out.println("Uscita non effettuata");
+                fail("Uscita non effettuata");
+            }
+
+            // Aggiungi una pausa di 2 secondi
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        void entryReparti() {
+            WebElement repartiButton = driver.findElement(By.xpath("//*[@id=\"content\"]/div[1]/div/div[3]/a[1]/div/i"));
+            repartiButton.click();
+        }
+    }
+    @Nested
+    @TestMethodOrder(OrderAnnotation.class)
+    class Raggruppamenti {
+        @BeforeEach
+        void accessoTotale() {
+            entryAnagrafica();
+            entryRagg();
+        }
+
+        @Test
+        @Order(1)
+        void inserisciTipo(){
+            WebElement nome = driver.findElement(By.id("nome"));
+            nome.sendKeys("POLO");
+            // Trova l'elemento del menu a tendina
+            WebElement menu = driver.findElement(By.xpath("//*[@id=\"reparto\"]"));
+            // Crea un oggetto Select basato sull'elemento del menu a tendina
+            Select select = new Select(menu);
+            // Seleziona un'opzione in base al valore
+            select.selectByValue("1");
+
+            WebElement salvaButton = driver.findElement(By.xpath("//input[@value='Salva']"));
+            salvaButton.click();
+        }
+
+        @Test
+        @Order(2)
+        void eliminaTipo(){            
+            // Trova tutti gli elementi della tabella che hanno come ID "dati"
+             List<WebElement> righe = driver.findElements(By.xpath("//table[@class='table']/tbody/tr"));
+
+            // Itera attraverso le righe della tabella
+            for (int i = 0; i < righe.size(); i++) {
+                // Aggiorna la lista delle righe ad ogni iterazione
+                righe = driver.findElements(By.xpath("//table[@class='table']/tbody/tr"));
+
+                // Ottieni il valore della colonna "Nome" della riga corrente
+                WebElement riga = righe.get(i);
+                // Ottieni il valore della colonna "Nome" della riga
+                WebElement nomeColonna = riga.findElement(By.xpath(".//td[1]"));
+                String valoreNome = nomeColonna.getText();
+
+                // Verifica se il valore "Nome" è "POLO"
+                if (valoreNome.equals("POLO")) {
+                    // Trova il bottone "Elimina" nella riga corrente
+                    WebElement eliminaButton = riga.findElement(By.xpath(".//button[contains(text(), 'Elimina')]"));
+                    eliminaButton.click();
+                    }else {
+                    System.out.println("Tipo non trovato");
+                }
+            }
+        }
+
+        @Test
+        @Order(3)
+        void annullaRicerca() {
+            WebElement annullaButton = driver.findElement(By.xpath("//input[@value='Annulla']"));
+            annullaButton.click();
+            try {
+                // Attendi che l'elemento con id "fas fa-plus fa-2x" sia visibile
+                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[@href='/RichiediCercaArticolo']//div[@class='service']//i[@class='fas fa-search fa-2x']")));
+
+                // Se siamo arrivati qui senza errori possiamo accedere alle altre operazioni
+                System.out.println("Uscita effettuata");
+            } catch (TimeoutException e) {
+                // Se si verifica un'eccezione di timeout, significa che l'elemento non è stato
+                // trovato entro il tempo specificato
+                System.out.println("Uscita non effettuata");
+                fail("Uscita non effettuata");
+            }
+
+            // Aggiungi una pausa di 2 secondi
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        void entryRagg(){
+            WebElement raggruppamentiButton = driver.findElement(By.xpath("//*[@id=\"content\"]/div/div/div[3]/a[2]/div/i"));
+            raggruppamentiButton.click();
+        }
+    }
+
+    @Nested
+    @TestMethodOrder(OrderAnnotation.class)
+    class Categorie {
+        @BeforeEach
+        void accessoTotale() {
+            entryAnagrafica();
+            entryCategorie();
+        }
+
+        @Test
+        @Order(1)
+        void inserisciNuovaCat(){
+            WebElement nome = driver.findElement(By.id("nome"));
+            nome.sendKeys("PANTALONCINI");
+            // Trova l'elemento del menu a tendina
+            WebElement menu = driver.findElement(By.xpath("//*[@id=\"raggruppamento\"]"));
+            // Crea un oggetto Select basato sull'elemento del menu a tendina
+            Select select = new Select(menu);
+            // Seleziona un'opzione in base al valore
+            select.selectByValue("17");
+
+            WebElement salvaButton = driver.findElement(By.xpath("//*[@id=\"mask\"]/form/div[3]/div[3]/input"));
+            salvaButton.click();
+        }
+
+        @Test
+        @Order(2)
+        void eliminaElemento() {
+            List<WebElement> righe = driver.findElements(By.xpath("//tr[@id='dati']"));
+
+            for (WebElement riga : righe) {
+                WebElement nomeColonna = riga.findElement(By.xpath(".//td[1]"));
+                String valore = nomeColonna.getText();
+
+                if (valore.equals("PANTALONCINI")) {
+                    WebElement eliminaButton = riga.findElement(By.xpath(".//td[3]/button"));
+                    eliminaButton.click();
+                    break; // Esci dal ciclo dopo aver eliminato l'elemento desiderato
+                } else {
+                    System.out.println("Elemento non trovato");
+                }
+            }
+        }
+
+        @Test
+        @Order(3)
+        void annullaRicerca() {
+            WebElement annullaButton = driver.findElement(By.xpath("//input[@value='Annulla']"));
+            annullaButton.click();
+            try {
+                // Attendi che l'elemento con id "fas fa-plus fa-2x" sia visibile
+                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[@href='/RichiediCercaArticolo']//div[@class='service']//i[@class='fas fa-search fa-2x']")));
+
+                // Se siamo arrivati qui senza errori possiamo accedere alle altre operazioni
+                System.out.println("Uscita effettuata");
+            } catch (TimeoutException e) {
+                // Se si verifica un'eccezione di timeout, significa che l'elemento non è stato
+                // trovato entro il tempo specificato
+                System.out.println("Uscita non effettuata");
+                fail("Uscita non effettuata");
+            }
+
+            // Aggiungi una pausa di 2 secondi
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        void entryCategorie(){
+            WebElement categorieButton = driver.findElement(By.xpath("//*[@id=\"content\"]/div/div/div[3]/a[3]/div/i"));
+            categorieButton.click();
         }
     }
 }
