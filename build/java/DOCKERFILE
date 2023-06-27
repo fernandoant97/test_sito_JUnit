@@ -1,4 +1,0 @@
-# Dockerfile_java
-FROM openjdk:11-jdk
-COPY ./src /app/src
-WORKDIR /app
