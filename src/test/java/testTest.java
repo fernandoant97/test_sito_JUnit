@@ -28,7 +28,7 @@ class testTest {
     @BeforeEach
     void setUp() throws URISyntaxException {
         // Questo codice viene eseguito prima di ogni test
-        System.setProperty("webdriver.chrome.driver", "C:/Users/lucis_ck21/Desktop/ing/progetto_test/chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", "C:\\Users\\lucis_ck21\\Desktop\\ing\\progetto_test\\chromedriver.exe");
         driver = new ChromeDriver();
 
         // Esegui test di connessione
@@ -42,9 +42,9 @@ class testTest {
     @AfterEach
     void tearDown() {
         // Questo codice viene eseguito dopo ogni test
-        // if (driver != null) {
-        // driver.quit();
-        // }
+        if (driver != null) {
+        driver.quit();
+        }
     }
 
     @Test
@@ -70,7 +70,6 @@ class testTest {
         }
     }
 
-    @Test 
     void login() {
         // Visita una pagina web
         driver.get("http://localhost:8080/");
@@ -156,6 +155,38 @@ class testTest {
             // trovato entro il tempo specificato
             System.out.println("Errore logout");
             fail("Errore logout"); // Questo farà fallire il test
+        }
+    }
+
+    @Test
+    void loginDirettore(){
+        logout();
+        WebElement usernameInput = driver.findElement(By.cssSelector("input[name='username']"));
+        usernameInput.sendKeys("fabi");
+
+        WebElement passwordInput = driver.findElement(By.cssSelector("input[name='password']"));
+        passwordInput.sendKeys("fabi");
+
+        // Trova il pulsante di login utilizzando il suo attributo di classe
+        WebElement loginButton = driver.findElement(By.cssSelector(".btn.btn-lg.btn-primary.btn-block"));
+
+        // Clicca sul pulsante di login
+        loginButton.click();
+
+        try {
+
+            // Attendi che l'elemento con id ".fa.fa-user.fa-2x" sia visibile
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h4[normalize-space()='Gestione Utenti']")));
+
+            // Se siamo arrivati qui senza errori, il login è andato a buon fine
+            System.out.println("Login direttore effettuato con successo!");
+
+        } catch (TimeoutException e) {
+            // Se si verifica un'eccezione di timeout, significa che l'elemento non è stato
+            // trovato entro il tempo specificato
+            System.out.println("Utente/password errati! Login direttore non riuscito.");
+            fail("Utente/password errati! Login direttore non riuscito."); // Questo farà fallire il test
         }
     }
 
@@ -371,8 +402,91 @@ class testTest {
     }
 
     @Nested
-    class Nuovo {
+    @TestMethodOrder(OrderAnnotation.class)
+    class Gestione {
+        @Test
+        @Order(1)
+        void gestioneUtenti(){
+            loginDirettore();
+            WebElement gestioneButton = driver.findElement(By.xpath("//a[@href='/RichiediUtenti']//div[@class='service']"));
+            gestioneButton.click();
 
+            String html = driver.getPageSource();
+            if (html.contains("Elenco Utenti")) { // Se visualizziamo questa stringa, la pagina è stata raggiunta
+                System.out.println("Pagina successiva raggiunta");
+            } else {
+                System.out.println("Pagina successiva non raggiunta");
+                fail("Pagina successiva non raggiunta");
+            }
+        }
+
+        @Test
+        @Order(2)
+        void nuovoUtente(){
+            gestioneUtenti();
+            WebElement nuovoButton = driver.findElement(By.xpath("//input[@value='Nuovo Utente']"));
+            nuovoButton.click();
+
+            String html = driver.getPageSource();
+            if (html.contains("Nuovo Utente")) { // Se visualizziamo questa stringa, la pagina è stata raggiunta
+                System.out.println("Pagina successiva raggiunta");
+            } else {
+                System.out.println("Pagina successiva non raggiunta");
+                fail("Pagina successiva non raggiunta");
+            }
+        }
+
+        @Test
+        @Order(3)
+        void inserisciDati(){
+            nuovoUtente();
+            WebElement username = driver.findElement(By.id("username"));
+            WebElement password = driver.findElement(By.id("password"));
+            WebElement confermaPassword = driver.findElement(By.id("cpassword"));
+            WebElement categoria = driver.findElement(By.id("categoria"));
+            username.sendKeys("utente");
+            password.sendKeys("utente");
+            confermaPassword.sendKeys("utente");
+            categoria.sendKeys("Standard");
+
+            WebElement salvaButton = driver.findElement(By.cssSelector("input[value='Salva']"));
+            // Clicca sul pulsante di ricerca
+            salvaButton.click();
+
+           String html = driver.getPageSource();
+            if (html.contains("Elenco Utenti")) { // Se visualizziamo questa stringa, la pagina è stata raggiunta
+                System.out.println("Pagina successiva raggiunta");
+            } else {
+                System.out.println("Pagina successiva non raggiunta");
+                fail("Pagina successiva non raggiunta");
+            }
+        }
+
+        @Test
+        @Order(4)
+        void selezionaUtente(){
+            // Trova tutti gli elementi della tabella che hanno come ID "dati"
+            List<WebElement> righe = driver.findElements(By.xpath("//*[@id=\"dati\"]"));
+
+            // Itera attraverso le righe della tabella
+            for (WebElement riga : righe) {
+                // Ottieni il valore della riga
+                String valore = riga.getText();
+
+                // Verifica se il valore è "utente"
+                if (valore.equals("utente")) {
+                    WebElement utenteButton = driver.findElement(By.xpath("//*[@id=\"dati\"]/td[1]"));
+                    utenteButton.click();
+                }else {
+                System.out.println("Utente non trovato");
+                }
+            }
+        }
+
+    }
+    
+    @Nested
+    class Nuovo {
         @Test
         void testFillandSend() {
             entryAnagrafica();
